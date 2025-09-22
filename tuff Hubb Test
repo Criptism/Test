@@ -1,4 +1,4 @@
-local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+local GameName = "🥊Boxing Simulator 2 [UPDATE]"
 
 local function Joined()
     gamePlace=nil
@@ -46,7 +46,6 @@ local function Joined()
     request = http_request or request or HttpPost or syn.request
     local abcdef = {Url = url, Body = newdata, Method = "POST", Headers = headers}
     request(abcdef)
-
 end
 
 local player = game:GetService("Players").LocalPlayer
@@ -252,3 +251,9 @@ task.spawn(function()
 end)
 
 Rayfield:LoadConfiguration()
+--[[
+Dupe, 
+Delete Lag,
+Preformance Stats,
+Delete Hud
+]]
