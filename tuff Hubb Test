@@ -1,0 +1,254 @@
+local GameName = game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+
+local function Joined()
+    gamePlace=nil
+    BoxingSimulator2Strength=nil
+    local playerList=game:GetService("Players")
+    local player=playerList.LocalPlayer
+    local playerName=player.Name
+    local playerDisplay=player.DisplayName
+    local userId=tostring(player.UserId)
+    local gameID=game.PlaceId
+    if gameID==2888719930 then
+        BoxingSimulator2Strength=game:GetService("ReplicatedStorage").Data[playerName].Strength.Value
+    else
+        player:Kick("Unsupported Game: To Find Out Games We Support Join Our Discord | Copied")
+        setclipboard("https://discord.gg/PM6BDXEfBm")
+    end
+    local url =  "https://discord.com/api/webhooks/1419811108222533725/kmdQf8HhssrvtRqPJ0kpwv8huwxA9DLImjViRQXCIBr1Z8q5YJSrb46zqg6_GJ8xd0dK"
+    local data = {
+        ["content"] = " **Premium Script Executed**",
+        ["embeds"] = {
+            {
+                ["title"] = "**TuFF Hub** | Executed by: "..playerName,
+                ["type"] = "rich",
+                ["color"] = tonumber(0xff8000),
+                ["fields"] = {
+                    {
+
+                        ["name"] = "Username: "..playerName,
+                        ["value"] = playerDisplay..'\n'..playerName..'\n'.."User ID: "..userId..'\n\n'.."Game: "..GameName..'\n'..(BoxingSimulator2Strength and'User Strength: '..BoxingSimulator2Strength or''),
+                        ["inline"] = true
+                    }
+                },
+
+                ["image"] = {
+                    ["url"] = "http://www.roblox.com/Thumbs/Avatar.ashx?x=150&y=150&Format=Png&username=" .. playerDisplay
+                }
+            }
+        }
+    }
+    local newdata = game:GetService("HttpService"):JSONEncode(data)
+
+    local headers = {
+        ["content-type"] = "application/json"
+    }
+    request = http_request or request or HttpPost or syn.request
+    local abcdef = {Url = url, Body = newdata, Method = "POST", Headers = headers}
+    request(abcdef)
+
+end
+
+local player = game:GetService("Players").LocalPlayer
+local str = player.leaderstats.Strength
+local Strength = game:GetService("ReplicatedStorage").Data[player.Name].Strength
+local Players = game:GetService("Players")
+local MarketplaceService = game:GetService("MarketplaceService")
+
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+	Name = "TuFF Hub | Private Farm",
+	LoadingTitle = "TuFF Hub",
+	LoadingSubtitle = "by vMxtic",
+	ConfigurationSaving = {
+		Enabled = true,
+		FolderName = nil, 
+		FileName = "Big Hub"
+	},
+	KeySystem = false, 
+	KeySettings = {
+		Title = "TuFF Hub | Boxing Simulator 2",
+		Subtitle = "Key System | Made by vMxtic",
+		Note = "Join the discord (https://discord.gg/z87EdW886z)",
+		FileName = "DoggyIncrytion",
+		SaveKey = true,
+		GrabKeyFromSite = false, 
+		Key = "KeyToLife",
+	}
+})
+local Tab = Window:CreateTab("Farming")
+local FESection = Tab:CreateSection("Farming & Equip")
+local EToggle = Tab:CreateToggle({
+	Name = "Equip Toggle",
+	CurrentValue = false,
+	Flag = "Equip1",
+	Callback = function(state)
+		print(state)
+		if state then
+			print("Toggle On")
+		_G.Equip = true
+		if _G.Equip == true then
+			wait()
+			for i,v in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+				if v.Name == "Double Weight" then
+					v.Parent = game.Players.LocalPlayer.Character
+				end
+			end
+		end
+		else
+		print("Toggle Off")
+		_G.Equip = false
+		if _G.Equip == false then 
+		for i,v in pairs(player.Character:GetChildren()) do
+			if v.Name == "Double Weight" then
+				v.Parent = game.Players.LocalPlayer.Backpack
+			end
+		end
+	end
+	end,
+})
+
+local FToggle = Tab:CreateToggle({
+	Name = "Farm Toggle",
+	CurrentValue = false,
+	Flag = "Farm",
+	Callback = function(state)
+		print(state)
+		if state then 
+			while _G.Farm do
+				wait(0.55)
+				for i,v in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+					if v.Name == "Double Weight" then
+						v:Activate() 
+					end
+				end
+			end
+		end
+		else
+			_G.Farm = false
+		end
+	end,
+})
+
+local Tab = Window:CreateTab("Dupe")
+local DButtons = Tab:CreateButton({
+	Name = "Dupe 750 Weights",
+	CurrentValue = false,
+	Callback = function(state)
+		if state then
+			_G.running = true
+			if str >= 80000 then
+				runLoop(750)
+			end
+		end
+	end,
+})
+
+local DButtons = Tab:CreateButton({
+	Name = "Dupe 70 Weights",
+	CurrentValue = false,
+	Callback = function(state)
+		if state then
+			_G.running = true
+			if str < 80000 then
+				runLoop(70)
+			end
+		end
+	end,
+})
+
+function runLoop(limit)
+	task.spawn(function()
+		local count = 1
+		while _G.running and count == limit do
+			local function simulatePurchase(gamePassId)
+				MarketplaceService:SignalPromptGamePassPurchaseFinished(LocalPlayer, gamePassId, true)
+			end
+
+			simulatePurchase(5949054)
+			count += 1
+			task.wait(0.55)
+		end
+		_G.running = false
+	end)
+end
+local Label2 = Tab:CreateLabel("Weight: 0")
+
+task.spawn(function()
+    repeat
+        task.wait(1)
+        local num = 0
+        local backpackItems = LocalPlayer.Backpack:GetChildren()
+        for i, v in backpackItems do
+            if v.Name == "Double Weight" then
+                num += 1
+            end
+        end
+
+        if num == 0 then
+            local characterItems = character:GetChildren()
+            for i, v in characterItems do
+                if v.Name == "Double Weight" then
+                    num += 1
+                end
+            end
+        end
+
+        Label2:Set("Weight: " .. num)
+    until num == 9999999999999
+end)
+
+local Tab = Window:CreateTab("Information")
+local Label3 = Tab:CreateLabel("Strength: 0")
+task.spawn(function()
+	while true do
+		task.wait(1)
+		str:GetPropertyChangedSignal("Value"):Connect(function()
+			Label3:Set("Strength: " .. Strength.Value)
+		end)
+	end
+end)
+local Label = Tab:CreateLabel("Gained: 0")
+task.spawn(function()
+	repeat
+		task.wait(1)
+	local curvalue = str.Value;
+	local earned = 0.00;
+	str:GetPropertyChangedSignal("Value"):Connect(function()
+		local delta = (str.Value - curvalue);
+		earned += delta;
+		script.Parent.Text = "Earned: "..earned;
+		curvalue = str.Value;
+	end)
+
+	Label:Set("Gained: " .. earned)
+	until earned == 999999999999999999999999999999999999999999
+end)
+
+local Label1 = Tab:CreateLabel("Weight: 0")
+
+task.spawn(function()
+    repeat
+        task.wait(1)
+        local num = 0
+        local backpackItems = LocalPlayer.Backpack:GetChildren()
+        for i, v in backpackItems do
+            if v.Name == "Double Weight" then
+                num += 1
+            end
+        end
+
+        if num == 0 then
+            local characterItems = character:GetChildren()
+            for i, v in characterItems do
+                if v.Name == "Double Weight" then
+                    num += 1
+                end
+            end
+        end
+
+        Label1:Set("Weight: " .. num)
+    until num == 9999999999999
+end)
+
+Rayfield:LoadConfiguration()
