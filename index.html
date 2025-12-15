@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>RNG GUI (with Auto Roll & Debounce)</title>
+  <style>
+    html,body {
+      height: 100%;
+      margin: 0;
+      font-family: "Source Sans Pro", "Segoe UI", Roboto, Arial, sans-serif;
+      background: #111;
+      color: #fff;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .layout {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      gap: 60px;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+
+    .container {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      flex: none;
+    }
+
+    .label {
+      width: 400px;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      background: rgba(0,0,0,0.75);
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: clamp(18px, 3.5vw, 26px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+      user-select: none;
+      padding: 10px 20px;
+      text-align: center;
+    }
+
+    .sub {
+      font-size: 13px;
+      opacity: 0.8;
+      margin-top: 6px;
+    }
+
+    button {
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 0;
+      background: #2e8bff;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      margin: 5px;
+    }
+
+    button:hover { background: #1c70d8; }
+    button:active { transform: translateY(1px); }
+
+    .picked {
+      margin-top: 10px;
+      font-size: 13px;
+      opacity: 0.9;
+      color: #ddd;
+    }
+
+    .counter {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #00ff9d;
+      font-weight: 600;
+    }
+
+    .attempt {
+      margin-top: 6px;
+      font-size: 14px;
+      color: #ffcc00;
+      font-weight: 600;
+    }
+
+    .history {
+      align-self: flex-start;
+      margin-top: 20px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      max-height: 80vh;
+      width: 320px;
+      overflow-y: auto;
+      padding: 10px 15px;
+      text-align: left;
+      font-size: 13px;
+      line-height: 1.4em;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    .history strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 6px;
+      color: #00aaff;
+    }
+
+    .history-entry {
+      opacity: 0.85;
+      margin: 3px 0;
+    }
+
+    .hit {
+      color: #00ff9d;
+      font-weight: bold;
+    }
+
+    .miss {
+      color: #ff6666;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div class="container">
+      <div id="label" class="label">...</div>
+      <div id="attempt" class="attempt">Attempt #0</div>
+      <button id="rollBtn">Roll</button>
+      <button id="autoBtn">▶️ Auto Roll</button>
+      <div id="counter" class="counter">🎯 Hits: 0</div>
+      <div id="picked" class="picked" aria-live="polite"></div>
+      <div class="sub">Target: <code>tttttttttttttg</code></div>
+    </div>
+
+    <div id="history" class="history">
+      <strong>History:</strong>
+      <span class="history-entry">No attempts yet.</span>
+    </div>
+  </div>
+
+  <script>
+    const strings = [
+      "tttttttttttttg", "Yes!", "No!", "Maybe...", "Hmm...", "Error: undefined", "Success!", 
+      "Try again later", "Absolutely!", "Probably not", "Wait—what?", "Loading...", "Done!", 
+      "Calculating...", "Processing...", "Lucky guess?", "Better luck next time!", "Not today", 
+      "Whoops!", "Yesn't", "Why tho?", "You wish!", "Suspicious...", "Almost!", "Retry?", "Boom!", 
+      "Kaboom!", "System overloaded", "404 Not Found", "Approved", "Denied", "Granted", "Refused", 
+      "It’s fate!", "Coin flip...", "Heads!", "Tails!", "Yup", "Nope", "Try harder!", "L", "W", 
+      "Maybe later", "Hmmmm", "Suspense...", "Wait for it...", "Ha!", "Glitched?", "Randomized!", 
+      "Pick again", "Recalculating...", "Deja vu", "In progress...", "Pending...", "Done already?", 
+      "Yay!", "Bruh", "Seriously?", "Hmm.", "Oh no", "Oh yes", "Why not?", "Wait...", "Processing error", 
+      "Debugging...", "Restart required", "Rebooting...", "Reticulating splines...", "Loading data...", 
+      "Success!!", "Try one more time", "No signal", "Powering up...", "Access granted", "Access denied", 
+      "Hello world!", "Ping!", "Pong!", "Beep boop", "Calculating odds...", "Luck = 0", "Luck = 100", 
+      "This is fine", "That’s illegal", "Corrupted", "Rewriting reality...", "You saw nothing", 
+      "RNG loves you", "RNG hates you", "Neutral outcome", "Cosmic balance...", "Out of bounds", 
+      "Random seed", "Try again?", "Maybe yes", "Maybe no", "Quantum fluctuation", "Entropy rising..."
+    ];
+
+    const TARGETS = [
+      "tttttttttttttg", "Success!", "Kaboom!", "Ping!", "Coin flip...", "You saw nothing", 
+      "Entropy rising...", "Access granted", "Hello world!", "Recalculating...", 
+      "Reticulating splines...", "Random seed", "Quantum fluctuation", "RNG loves you", 
+      "Cosmic balance..."
+    ];
+    const MAX_HISTORY = 100;
+    const DEBOUNCE_TIME = 500; // 0.5s
+
+    const labelEl = document.getElementById('label');
+    const pickedEl = document.getElementById('picked');
+    const rollBtn = document.getElementById('rollBtn');
+    const autoBtn = document.getElementById('autoBtn');
+    const counterEl = document.getElementById('counter');
+    const attemptEl = document.getElementById('attempt');
+    const historyEl = document.getElementById('history');
+
+    let hitCount = 0;
+    let attemptCount = 0;
+    let historyLog = [];
+    let canRoll = true;
+    let autoRolling = false;
+    let autoInterval = null;
+
+    function randomIndex(max) {
+      if (window.crypto && window.crypto.getRandomValues) {
+        const arr = new Uint32Array(1);
+        window.crypto.getRandomValues(arr);
+        return arr[0] % max;
+      } else return Math.floor(Math.random() * max);
+    }
+
+    function updateHistoryDisplay() {
+      if (historyLog.length === 0) {
+        historyEl.innerHTML = "<strong>History:</strong><span class='history-entry'>No attempts yet.</span>";
+        return;
+      }
+      const entries = historyLog.map(entry => {
+        const colorClass = entry.hit ? "hit" : "miss";
+        return `<div class="history-entry ${colorClass}">#${entry.attempt}: "${entry.string}" ${entry.hit ? "🎯 HIT!" : ""}</div>`;
+      }).join("");
+      historyEl.innerHTML = "<strong>History:</strong>" + entries;
+      historyEl.scrollTop = historyEl.scrollHeight;
+    }
+
+    function rollOnce() {
+      if (!canRoll) return;
+      canRoll = false;
+      setTimeout(() => canRoll = true, DEBOUNCE_TIME); // debounce 0.5s
+
+      attemptCount++;
+      const idx = randomIndex(strings.length);
+      const picked = strings[idx];
+      const isHit = TARGETS.includes(picked);
+
+      if (isHit) {
+        labelEl.textContent = "🎯 RNG hit! The target string was picked!";
+        hitCount++;
+        historyLog.push({ attempt: attemptCount, string: picked, hit: true });
+        attemptCount = 0;
+      } else {
+        labelEl.textContent = `❌ RNG missed. Nothing happens. (Attempt #${attemptCount})`;
+        historyLog.push({ attempt: attemptCount, string: picked, hit: false });
+      }
+
+      if (historyLog.length > MAX_HISTORY) {
+        historyLog = [];
+        historyLog.push({ attempt: "-", string: "History cleared automatically", hit: false });
+      }
+
+      updateHistoryDisplay();
+      counterEl.textContent = `🎯 Hits: ${hitCount}`;
+      pickedEl.textContent = `Picked: "${picked}"`;
+      attemptEl.textContent = `Attempt #${attemptCount}`;
+    }
+
+    // Manual roll with debounce
+    rollBtn.addEventListener("click", rollOnce);
+
+    // Auto-roll toggle
+    autoBtn.addEventListener("click", () => {
+      if (!autoRolling) {
+        autoRolling = true;
+        autoBtn.textContent = "⏸️ Stop Auto Roll";
+        autoInterval = setInterval(rollOnce, 500);
+      } else {
+        autoRolling = false;
+        autoBtn.textContent = "▶️ Auto Roll";
+        clearInterval(autoInterval);
+      }
+    });
+
+    updateHistoryDisplay();
+  </script>
+</body>
+</html>
